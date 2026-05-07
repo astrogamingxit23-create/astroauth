@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASTRO AUTH - Login</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #0f172a; color: white; height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .card { background-color: #1e293b; border: none; width: 400px; }
+        .form-control { background-color: #334155; border: 1px solid #475569; color: white; }
+        .form-control:focus { background-color: #334155; color: white; border-color: #3b82f6; box-shadow: none; }
+        .btn-primary { background-color: #3b82f6; border: none; }
+    </style>
+</head>
+<body>
+    <div class="card p-4 shadow-lg">
+        <h2 class="text-center mb-4 fw-bold">ASTRO <span class="text-primary">AUTH</span></h2>
+        <div id="loginForm">
+            <div class="mb-3">
+                <label class="form-label text-secondary small">Usuário</label>
+                <input type="text" id="username" class="form-control" placeholder="Seu usuário">
+            </div>
+            <div class="mb-3">
+                <label class="form-label text-secondary small">Senha</label>
+                <input type="password" id="password" class="form-control" placeholder="••••••••">
+            </div>
+            <button onclick="login()" class="btn btn-primary w-100 mb-2">Entrar</button>
+            <p class="text-center small text-secondary">Não tem conta? <a href="#" onclick="toggleForm()" class="text-primary text-decoration-none">Registre-se</a></p>
+        </div>
+        <div id="registerForm" style="display: none;">
+            <div class="mb-3">
+                <label class="form-label text-secondary small">Usuário</label>
+                <input type="text" id="regUsername" class="form-control" placeholder="Escolha um usuário">
+            </div>
+            <div class="mb-3">
+                <label class="form-label text-secondary small">Senha</label>
+                <input type="password" id="regPassword" class="form-control" placeholder="Crie uma senha forte">
+            </div>
+            <button onclick="register()" class="btn btn-success w-100 mb-2">Criar Conta</button>
+            <p class="text-center small text-secondary">Já tem conta? <a href="#" onclick="toggleForm()" class="text-primary text-decoration-none">Entre aqui</a></p>
+        </div>
+        <div id="alert" class="alert mt-3" style="display: none;"></div>
+    </div>
+
+    <script>
+        // Check for register parameter
+        window.onload = () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('register') === 'true') {
+                toggleForm();
+            }
+        };
+
+        function toggleForm() {
+            const login = document.getElementById('loginForm');
+            const register = document.getElementById('registerForm');
+            if (login.style.display === 'none') {
+                login.style.display = 'block';
+                register.style.display = 'none';
+            } else {
+                login.style.display = 'none';
+                register.style.display = 'block';
+            }
+        }
+
+        async function login() {
+            const user = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+            try {
+                const res = await fetch('/api/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: user, password: pass })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('username', data.username);
+                    localStorage.setItem('plan', data.plan);
+                    window.location.href = 'dashboard.html';
+                } else {
+                    showAlert(data || 'Erro no login', 'danger');
+                }
+            } catch (err) {
+                showAlert('Erro ao conectar com o servidor', 'danger');
+            }
+        }
+
+        async function register() {
+            const user = document.getElementById('regUsername').value;
+            const pass = document.getElementById('regPassword').value;
+            try {
+                const res = await fetch('/api/admin/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: user, password: pass })
+                });
+                if (res.ok) {
+                    showAlert('Registrado com sucesso! Faça login.', 'success');
+                    toggleForm();
+                } else {
+                    const err = await res.text();
+                    showAlert(err, 'danger');
+                }
+            } catch (err) {
+                showAlert('Erro ao conectar com o servidor', 'danger');
+            }
+        }
+
+        function showAlert(msg, type) {
+            const alert = document.getElementById('alert');
+            alert.innerText = msg;
+            alert.className = `alert alert-${type} mt-3`;
+            alert.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

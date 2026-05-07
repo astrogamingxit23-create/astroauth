@@ -1,0 +1,23 @@
+# .NET
+bin/
+obj/
+*.user
+*.userosscache
+*.sln.docuser.json
+
+# Visual Studio
+.vs/
+.vscode/
+
+# Database
+*.db
+*.db-shm
+*.db-wal
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Env
+.env
+appsettings.Development.json
